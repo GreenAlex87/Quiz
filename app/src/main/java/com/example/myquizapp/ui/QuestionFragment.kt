@@ -6,22 +6,24 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.myquizapp.R
 import com.example.myquizapp.databinding.FragmentQuestionBinding
 import com.example.myquizapp.viewmodels.QiuzViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
-
+@AndroidEntryPoint
 class QuestionFragment : Fragment() {
 
     private var _binding: FragmentQuestionBinding? = null
     private val binding get() = _binding!!
 
-    lateinit var viewModel: QiuzViewModel
+    private val viewModel: QiuzViewModel by activityViewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
 
     }
 
@@ -31,7 +33,7 @@ class QuestionFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        viewModel = (activity as MainActivity).viewModel
+
         _binding = FragmentQuestionBinding.inflate(inflater, container, false)
 
         return binding.root
@@ -52,7 +54,6 @@ class QuestionFragment : Fragment() {
         }
         binding.allTextView.text = viewModel.getQuestionsAmount().toString()
 
-        viewModel.loadCurrentQuestion()
 
         binding.radios.setOnCheckedChangeListener { group, checkedId ->
             when (checkedId) {
@@ -68,6 +69,9 @@ class QuestionFragment : Fragment() {
                 R.id.fouthRB -> {
                     viewModel.userAnswer = 4
                 }
+                R.id.fifthRB -> {
+                    viewModel.userAnswer = 5
+                }
             }
         }
 
@@ -76,10 +80,12 @@ class QuestionFragment : Fragment() {
 
     private fun setupObservers() {
         viewModel.currentQuestionId.observe(viewLifecycleOwner) { questionNumber ->
+            viewModel.loadCurrentQuestion()
             binding.prevButton.isEnabled = questionNumber != 0
             if (questionNumber == viewModel.getQuestionsAmount() - 1) {
                 binding.nextButton.text = "Finish"
                 binding.nextButton.setOnClickListener {
+                    viewModel.saveUserAnswer()
                     findNavController().navigate(R.id.action_questionFragment_to_quizResultFragment)
                 }
 
@@ -121,6 +127,10 @@ class QuestionFragment : Fragment() {
                 binding.radios.check(R.id.fouthRB)
                 viewModel.userAnswer = 4
             }
+            5 -> {
+                binding.radios.check(R.id.fifthRB)
+                viewModel.userAnswer = 5
+            }
             else -> {
                 binding.radios.clearCheck()
                 viewModel.userAnswer = -1
@@ -137,6 +147,7 @@ class QuestionFragment : Fragment() {
         binding.secondRB.text = answers[1]
         binding.thirdRB.text = answers[2]
         binding.fouthRB.text = answers[3]
+        binding.fifthRB.text = answers[4]
     }
 
 
